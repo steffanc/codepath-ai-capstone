@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Chainlit Chrome Extension",
+  "version": "1.0",
+  "description": "Embed Chainlit directly into a Chrome extension.",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "host_permissions": [
+    "http://localhost:8000"
+  ]
+}
