@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>Chainlit Chrome Extension</title>
+    <script src="popup.js" defer></script>
     <style>
         /* Set the size of the popup to be a reasonable size */
         body, html {
@@ -24,6 +25,6 @@
 </head>
 <body>
     <!-- Embed the Chainlit web UI using an iframe -->
-    <iframe src="http://localhost:8000"></iframe>
+    <iframe id="chainlit-iframe" src="http://localhost:8000/chainlit"></iframe>
 </body>
 </html>

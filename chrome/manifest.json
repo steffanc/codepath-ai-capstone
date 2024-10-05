@@ -1,13 +1,29 @@
 {
   "manifest_version": 3,
-  "name": "Chainlit Chrome Extension",
+  "name": "YouTube X-Ray",
   "version": "1.0",
-  "description": "Embed Chainlit directly into a Chrome extension.",
-  "permissions": ["activeTab"],
-  "action": {
-    "default_popup": "popup.html"
-  },
+  "description": "Detect YouTube videos, download transcripts, and send them to an LLM for fun facts.",
+  "permissions": [
+    "activeTab",         // To interact with the current tab
+    "scripting",         // To inject scripts into the web page
+    "storage",           // To store any necessary data
+    "webRequest",
+    "webRequestBlocking"
+  ],
   "host_permissions": [
-    "http://localhost:8000"
-  ]
+    "http://localhost:8000/*",
+    "https://www.youtube.com/*"   // Permission to access YouTube
+  ],
+  "background": {
+    "service_worker": "background.js"  // Background script to manage video detection
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"], // Injects scripts only on YouTube pages
+      "js": ["content.js"]                      // The script that interacts with the YouTube page
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html" // Optional: A popup if you want to show some UI to the user
+  }
 }

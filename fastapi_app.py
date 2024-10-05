@@ -1,6 +1,6 @@
 import chainlit as cl
 from chainlit.context import init_ws_context
-from chainlit.session import WebsocketSession
+from chainlit.session import WebsocketSession, ws_sessions_id
 from chainlit.utils import mount_chainlit
 from fastapi import FastAPI, Request
 

@@ -1,29 +1,29 @@
-// Get video ID from URL
-function getVideoId() {
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('v');
-}
+console.log("Content script loaded");
 
-const videoId = getVideoId();
+// Define the regular expression to match the session ID (assuming it's a UUID format)
+const sessionIdRegex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
 
-if (videoId) {
-  chrome.runtime.sendMessage({ action: "getTranscript", videoId: videoId });
-}
+// Use MutationObserver to detect changes in the DOM
+const observer = new MutationObserver((mutationsList, observer) => {
+  for (let mutation of mutationsList) {
+    if (mutation.type === "childList") {
+      // Check the entire page or a specific element for the session ID
+      const pageText = document.body.innerText;  // This will search the entire body, can be refined
+      const sessionIdMatch = pageText.match(sessionIdRegex);
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "displayInsights") {
-    // Create a container for the insights
-    const insightsContainer = document.createElement('div');
-    insightsContainer.style.position = 'fixed';
-    insightsContainer.style.bottom = '10px';
-    insightsContainer.style.right = '10px';
-    insightsContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-    insightsContainer.style.color = 'white';
-    insightsContainer.style.padding = '10px';
-    insightsContainer.style.borderRadius = '5px';
-    insightsContainer.style.zIndex = '1000';
-    insightsContainer.innerHTML = `<h4>Fun Facts & Insights</h4><ul>${request.insights.map(insight => `<li>${insight}</li>`).join('')}</ul>`;
+      if (sessionIdMatch) {
+        const sessionId = sessionIdMatch[0];  // The first match should be the session ID
+        console.log("Session ID found using regex:", sessionId);
 
-    document.body.appendChild(insightsContainer);
+        // Once you have the session ID, stop observing and make backend calls
+        observer.disconnect();
+        break;  // No need to keep checking other mutations
+      } else {
+        console.log("Session ID not found");
+      }
+    }
   }
 });
+
+// Start observing the body or a specific parent element for changes
+observer.observe(document.body, { childList: true, subtree: true });
