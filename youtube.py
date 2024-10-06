@@ -1,10 +1,15 @@
+import os
+
 import isodate  # Library to parse ISO 8601 durations
+from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
 
+load_dotenv()
+
 # Initialize the YouTube Data API client with your API key
-API_KEY = 'AIzaSyBkHfBiJS8wsvbBtswR7MDBJeFcOEISf-c'  # Replace with your actual API key
-youtube = build('youtube', 'v3', developerKey=API_KEY)
+api_key = os.getenv("GOOGLE_API_KEY")
+youtube = build('youtube', 'v3', developerKey=api_key)
 
 
 # Function to fetch video metadata and transcript
@@ -50,11 +55,12 @@ def get_video_details_with_transcript(video_id, languages=['en']):
             # Fetch video transcript using youtube-transcript-api
             transcript_data = None
             try:
-                transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-                transcript = transcript_list.find_transcript(languages)
-                transcript_data = transcript.fetch()
+                transcript_data = YouTubeTranscriptApi.get_transcript(video_id)
             except Exception as e:
                 print(f"Error fetching transcript: {e}")
+
+            # Fetch top-level comments using YouTube Data API
+            comments_data = fetch_comments(video_id)
 
             # Combine all metadata and transcript into a single dictionary
             return {
@@ -71,7 +77,8 @@ def get_video_details_with_transcript(video_id, languages=['en']):
                 'dislike_count': dislike_count,
                 'comment_count': comment_count,
                 'privacy_status': privacy_status,
-                'transcript': transcript_data
+                'transcript': transcript_data,
+                'comments': comments_data
             }
 
         else:
@@ -81,8 +88,39 @@ def get_video_details_with_transcript(video_id, languages=['en']):
         print(f"Error fetching video details: {e}")
         return None
 
+
 # Helper function to convert ISO 8601 duration to seconds
 def convert_iso_duration_to_seconds(iso_duration):
     duration = isodate.parse_duration(iso_duration)
     return int(duration.total_seconds())
 
+
+# Function to fetch top-level comments for a video
+def fetch_comments(video_id, max_comments=100):
+    try:
+        # Fetch top-level comments from the YouTube Data API
+        request = youtube.commentThreads().list(
+            part='snippet',
+            videoId=video_id,
+            maxResults=max_comments,
+            order='relevance'  # Fetch most relevant comments
+        )
+        response = request.execute()
+
+        # Extract relevant details from each comment
+        comments = []
+        for item in response.get('items', []):
+            comment = item['snippet']['topLevelComment']['snippet']
+            comment_data = {
+                'author': comment.get('authorDisplayName'),
+                'text': comment.get('textDisplay'),
+                'like_count': comment.get('likeCount'),
+                'published_at': comment.get('publishedAt')
+            }
+            comments.append(comment_data)
+
+        return comments
+
+    except Exception as e:
+        print(f"Error fetching comments: {e}")
+        return []
