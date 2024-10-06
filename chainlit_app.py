@@ -6,7 +6,6 @@ import openai
 from langsmith.wrappers import wrap_openai
 
 from prompts import SYSTEM_PROMPT
-from youtube import download_youtube_captions_as_json
 
 api_key = os.getenv("OPENAI_API_KEY")
 endpoint_url = "https://api.openai.com/v1"

@@ -33,7 +33,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
 // Function to make a GET request to the endpoint with session_id and video_id
 function fetchYouTubeTranscript(sessionId, videoId) {
-  const url = `http://localhost:8000/youtube-transcript/${sessionId}/${videoId}`;
+  const url = `http://localhost:8000/youtube-metadata/${sessionId}/${videoId}`;
 
   fetch(url, {
     method: "GET",
