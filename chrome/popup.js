@@ -21,6 +21,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
 
         setTimeout(() => {
           fetchYouTubeTranscript(sessionId, videoId);  // Make the GET request after the delay
+          setInterval(() => { requestTimestamp(sessionId, videoId) }, 5000);
         }, 1000);
       }
     });
@@ -52,5 +53,37 @@ function fetchYouTubeTranscript(sessionId, videoId) {
   })
   .catch(error => {
     console.error("Error fetching transcript:", error);
+  });
+}
+
+// Function to request the timestamp from the content script
+function requestTimestamp(sessionId, videoId) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { action: "getTimestamp" }, (response) => {
+      if (response && response.timestamp != null) {
+        console.log(`Current timestamp: ${response.timestamp.toFixed(2)} seconds`);
+          const url = `http://localhost:8000/youtube-timestamp/${sessionId}/${videoId}/${response.timestamp.toFixed(2)}`;
+          fetch(url, {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json"
+            }
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();  // Assuming the response is in JSON format
+          })
+          .then(data => {
+            console.log("Backend response:", data);
+          })
+          .catch(error => {
+            console.error("Error fetching transcript:", error);
+          });
+      } else {
+        console.log("Unable to get timestamp.");
+      }
+    });
   });
 }
